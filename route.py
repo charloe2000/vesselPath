@@ -58,7 +58,7 @@ class Route:
                 break
         return up_point, down_point
     
-    def honrizital_line(self, point):
+    def horizontal_line(self, point):
         """
         以该点作水平线，返回水平线与路线mask的交点
         """
@@ -122,7 +122,7 @@ class Route:
 
         # 作水平线和垂直线
         [up_point, down_point] = self.vertical_line(self.cur_point)
-        [left_point, right_point] = self.honrizital_line(self.cur_point)
+        [left_point, right_point] = self.horizontal_line(self.cur_point)
         # debug 将水平线和垂直线画出来
         if debug:
             img = self.img_origin.copy()
@@ -165,7 +165,7 @@ class Route:
         self.cur_point = [next_x, next_y]
         # 对(x, y)进行修正
         [up_point, down_point] = self.vertical_line(self.cur_point)
-        [left_point, right_point] = self.honrizital_line(self.cur_point)
+        [left_point, right_point] = self.horizontal_line(self.cur_point)
         vertical_length = abs(up_point[1] - down_point[1])
         honrizital_length = abs(left_point[0] - right_point[0])
         if vertical_length < honrizital_length:

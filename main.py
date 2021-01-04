@@ -9,7 +9,5 @@ while count > 0 and not route.is_finish():
     #else:
     route.next_loc(debug=True)
     count -= 1
-
-route.show()
-
-#route.test()
+cv2.waitKey()
+#route.show()

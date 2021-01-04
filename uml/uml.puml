@@ -1,0 +1,15 @@
+@startuml
+
+[-> Controller: compute_route (image)
+activate Controller
+
+create Route
+Controller -> Route: create (image)
+loop is_finish==false
+    Controller -> Route: next_loc ()
+    activate Route
+    Route --> Controller: (x, y)
+end
+
+
+@enduml
