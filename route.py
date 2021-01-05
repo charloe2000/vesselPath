@@ -26,15 +26,24 @@ class Route:
         # kernel = np.ones((5,5),np.uint8)
         # self.mask = cv2.erode(mask, kernel, iterations = 1)
         # 存储路线取样点(x, y)
-        self.route_points = []
-        self.route_points.append(cfg.start_point)
+        self.cur_point = cfg.start_point
+        self.last_k = -1
+        self.direction = 1
+        self.is_finish_ = False
+        #self.route_points = []
+        #self.route_points.append(cfg.start_point)
+
+    def is_finish(self):
+        return self.is_finish_
 
     def show(self):
         #route_pure = cv2.bitwise_or(self.img_route, self.img_route, mask=self.mask)
-        self.compute_route()
-        for i in range(len(self.route_points)):
-            cv2.circle(self.img_route, self.route_points[i], 2, (255, 0, 0), -1)
-        cv2.imshow("route", self.img_route)
+        #self.compute_route()
+        #for i in range(len(self.route_points)):
+        #    cv2.circle(self.img_route, self.route_points[i], 2, (255, 0, 0), -1)
+        #cv2.imshow("route", self.img_route)
+        #cv2.waitKey()
+        cv2.imshow("route", self.img_origin)
         cv2.waitKey()
 
     def vertical_line(self, point):
@@ -111,89 +120,70 @@ class Route:
         second_point[1] = int(point[1] - cfg.tangent_length * 0.5 * k)
         cv2.line(img, tuple(first_point), tuple(second_point), (255, 0, 0), 2)
         
-    def compute_route(self):
+    def next_loc(self, debug=False):
         """
-        以一定的方法，在mask标明的路线上取样点
+        获取下一个规划点
         """
-        cur_point = cfg.start_point
-        last_k = -1
-        direction = 1
-        count = 167
 
-        while True:
-            [up_point, down_point] = self.vertical_line(cur_point)
-            [left_point, right_point] = self.honrizital_line(cur_point)
-            #cv2.line(self.img_route, up_point, down_point, (0, 0, 255), 1)
-            #cv2.line(self.img_route, left_point, right_point, (0, 0, 255), 1)
-            #cv2.imshow("line", self.img_route)
-            #cv2.waitKey()
+        # 作水平线和垂直线
+        [up_point, down_point] = self.vertical_line(self.cur_point)
+        [left_point, right_point] = self.honrizital_line(self.cur_point)
+        # debug 将水平线和垂直线画出来
+        if debug:
+            img = self.img_origin.copy()
+            cv2.line(img, up_point, down_point, (0, 0, 255), 2)
+            cv2.line(img, left_point, right_point, (0, 0, 255), 2)
+            cv2.imshow("debug", img)
 
-            points = [up_point, down_point, left_point, right_point]
-            #vertical_length = up_point[]
-            #continue
-            # 每个点的切线方程系数
-            ps = []
-            for i in range(len(points)):
-                p = self.tangent_line(points[i])
-                ps.append(p)
+        # 获取每个交点的斜率
+        points = [up_point, down_point, left_point, right_point]
+        ps = []
+        for i in range(len(points)):
+            p = self.tangent_line(points[i])
+            ps.append(p)
         
-            # 找出最接近的两个切线斜率
-            #min = abs(ps[0][0] - ps[1][0])
-            #m = 0
-            #n = 1
-            #for i in range(len(ps)):
-            #    for j in range(len(ps)):
-            #        cur = abs(ps[i][0] - ps[j][0])
-            #    if i!=j and cur < min:
-            #        min = cur
-            #        m = i
-            #        n = j
-            #k = (ps[m][0] + ps[n][0]) / 2
-            #b = (ps[m][1] + ps[n][1]) / 2
-            vertical_k_delta = ps[0]- ps[1]
-            honrizital_k_delta = ps[2] - ps[3]
-            if abs(vertical_k_delta) < abs(honrizital_k_delta):
-                k = (ps[0] + ps[1]) / 2
-            else:
-                k = (ps[2] + ps[3]) / 2
-            if count <= 5:
-                img = self.img_route.copy()
-                self.draw_tangant(img, cur_point, k)
-                cv2.line(img, up_point, down_point, (0, 0, 255), 1)
-                cv2.line(img, left_point, right_point, (0, 0, 255), 1)
-                cv2.imshow("qiexian" + str(count), img)
-                print(count, "p", ps, "k", k)
+        # 确定前进的斜率
+        vertical_k_delta = ps[0]- ps[1]
+        honrizital_k_delta = ps[2] - ps[3]
+        if abs(vertical_k_delta) < abs(honrizital_k_delta):
+            k = (ps[0] + ps[1]) / 2
+        else:
+            k = (ps[2] + ps[3]) / 2
 
-            # 确定下一个点
-            if abs(last_k) < 1e-6 and abs(k) > 1:
-                # 改变方向
-                direction *= -1             
-            next_x = int(round((cur_point[0] + cfg.sampling_distance * direction)))
-            if k < 1e-6:
-                next_y = cur_point[1] - cfg.sampling_distance
-            else:
-                next_y = int(round((cur_point[1] + cfg.sampling_distance * direction * k)))
-            last_k = k
-            cur_point = [next_x, next_y]
-            # 对(x, y)进行修正
-            [up_point, down_point] = self.vertical_line(cur_point)
-            [left_point, right_point] = self.honrizital_line(cur_point)
-            vertical_length = abs(up_point[1] - down_point[1])
-            honrizital_length = abs(left_point[0] - right_point[0])
-            if vertical_length < honrizital_length:
-                cur_point[1] = up_point[1] + int(round(vertical_length / 2))
-            else:
-                cur_point[0] = left_point[0] + int(round(honrizital_length / 2))
-            
-            self.route_points.append(tuple(cur_point))
-            if count <= 5:
-                print("point ", cur_point)
-            # 结束
-            count = count - 1
-            if count < 1:
-                break
-            if abs(cur_point[0]-cfg.end_point[0])+abs(cur_point[1]-cfg.end_point[1]) <= 3:
-                break
+        # debug 将确定的切线画出来
+        if debug:
+                self.draw_tangant(img, self.cur_point, k)
+                cv2.imshow("debug", img)
+                cv2.waitKey(100)
+                #print(count, "p", ps, "k", k)
+        
+        # 确定下一个点
+        if abs(self.last_k) < 1e-6 and abs(k) > 1:
+            # 改变方向
+            self.direction *= -1             
+        next_x = int(round((self.cur_point[0] + cfg.sampling_distance * self.direction)))
+        if abs(k) < 1e-6:
+            next_y = self.cur_point[1] - cfg.sampling_distance
+        else:
+            next_y = int(round((self.cur_point[1] + cfg.sampling_distance * self.direction * k)))
+        self.last_k = k
+        self.cur_point = [next_x, next_y]
+        # 对(x, y)进行修正
+        [up_point, down_point] = self.vertical_line(self.cur_point)
+        [left_point, right_point] = self.honrizital_line(self.cur_point)
+        vertical_length = abs(up_point[1] - down_point[1])
+        honrizital_length = abs(left_point[0] - right_point[0])
+        if vertical_length < honrizital_length:
+            self.cur_point[1] = up_point[1] + int(round(vertical_length / 2))
+        else:
+            self.cur_point[0] = left_point[0] + int(round(honrizital_length / 2))
+        
+        # 绘制到图像上
+        cv2.circle(self.img_origin, tuple(self.cur_point), 2, (0, 255, 0), -1)
+        # 是否到终点
+        if abs(self.cur_point[0]-cfg.end_point[0])+abs(self.cur_point[1]-cfg.end_point[1]) <= 3:
+            self.is_finish_ = True
+        return self.cur_point
             
         
         
