@@ -32,17 +32,12 @@ class Route:
         self.is_finish_ = False
         #self.route_points = []
         #self.route_points.append(cfg.start_point)
+        cv2.imshow("origin", self.img_origin)
 
     def is_finish(self):
         return self.is_finish_
 
     def show(self):
-        #route_pure = cv2.bitwise_or(self.img_route, self.img_route, mask=self.mask)
-        #self.compute_route()
-        #for i in range(len(self.route_points)):
-        #    cv2.circle(self.img_route, self.route_points[i], 2, (255, 0, 0), -1)
-        #cv2.imshow("route", self.img_route)
-        #cv2.waitKey()
         cv2.imshow("route", self.img_origin)
         cv2.waitKey()
 
