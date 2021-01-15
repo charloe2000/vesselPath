@@ -145,15 +145,9 @@ class Route:
         else:
             k = (ps[2] + ps[3]) / 2
 
-        # debug 将确定的切线画出来
-        if debug:
-                self.draw_tangant(img, self.cur_point, k)
-                cv2.imshow("debug", img)
-                cv2.waitKey(100)
-                #print(count, "p", ps, "k", k)
         
         # 确定下一个点
-        if abs(self.last_k) < 1e-6 and abs(k) > 1:
+        if abs(self.last_k) < 1e-6 and abs(k) > 0.5:
             # 改变方向
             self.direction *= -1             
         next_x = int(round((self.cur_point[0] + cfg.sampling_distance * self.direction)))
@@ -178,6 +172,14 @@ class Route:
         # 是否到终点
         if abs(self.cur_point[0]-cfg.end_point[0])+abs(self.cur_point[1]-cfg.end_point[1]) <= 3:
             self.is_finish_ = True
+        
+        # debug 将确定的切线画出来
+        if debug:
+                self.draw_tangant(img, self.cur_point, k)
+                cv2.imshow("debug", img)
+                cv2.waitKey(100)
+                #print("p", ps, "k", k, "direction", self.direction)
+        
         return self.cur_point
             
         
