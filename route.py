@@ -5,10 +5,10 @@ route class
 from cv2 import cv2
 import config as cfg
 import numpy as np
-
+import json
 
 class Route:
-    def __init__(self, img_origin_path, img_route_path):
+    def __init__(self, img_origin_path, img_route_path, img_route_json):
         """
         img_orgin_path: 黑白图的文件路径
         img_route_path: 标有路线的黑白图的文件路径
@@ -25,14 +25,23 @@ class Route:
         # 腐蚀
         # kernel = np.ones((5,5),np.uint8)
         # self.mask = cv2.erode(mask, kernel, iterations = 1)
-        # 存储路线取样点(x, y)
-        self.cur_point = cfg.start_point
+        # 从json文件中读取开始点和结束点
+        self.read_route_json(img_route_json)
+
+        self.cur_point = self.start_point
         self.last_k = -1
         self.direction = 1
         self.is_finish_ = False
-        #self.route_points = []
-        #self.route_points.append(cfg.start_point)
         cv2.imshow("origin", self.img_origin)
+    
+    def read_route_json(self, img_route_json):
+        """
+        从json文件中读取开始点和结束点
+        """
+        with open(img_route_json, 'r') as fp:
+            data = json.load(fp)
+            self.start_point = (data["start_x"], data["start_y"])
+            self.end_point = (data["end_x"], data["end_y"])
 
     def is_finish(self):
         return self.is_finish_
@@ -115,6 +124,22 @@ class Route:
         second_point[1] = int(point[1] - cfg.tangent_length * 0.5 * k)
         cv2.line(img, tuple(first_point), tuple(second_point), (255, 0, 0), 2)
         
+    def compute_xy(self, k):
+        """
+        计算出k后，依据上一个计算的last_k以及direction等，计算出下一个点的位置
+        计算结果保存在self.last_k和self.cur_point中
+        """
+        if abs(self.last_k) < 1e-6 and abs(k) > 0.5:
+            # 改变方向
+            self.direction *= -1             
+        next_x = int(round((self.cur_point[0] + cfg.sampling_distance * self.direction)))
+        if abs(k) < 1e-6:
+            next_y = self.cur_point[1] - cfg.sampling_distance
+        else:
+            next_y = int(round((self.cur_point[1] + cfg.sampling_distance * self.direction * k)))
+        self.last_k = k
+        self.cur_point = [next_x, next_y]      
+
     def next_loc(self, debug=False):
         """
         获取下一个规划点
@@ -147,16 +172,8 @@ class Route:
 
         
         # 确定下一个点
-        if abs(self.last_k) < 1e-6 and abs(k) > 0.5:
-            # 改变方向
-            self.direction *= -1             
-        next_x = int(round((self.cur_point[0] + cfg.sampling_distance * self.direction)))
-        if abs(k) < 1e-6:
-            next_y = self.cur_point[1] - cfg.sampling_distance
-        else:
-            next_y = int(round((self.cur_point[1] + cfg.sampling_distance * self.direction * k)))
-        self.last_k = k
-        self.cur_point = [next_x, next_y]
+        self.compute_xy(k)
+
         # 对(x, y)进行修正
         [up_point, down_point] = self.vertical_line(self.cur_point)
         [left_point, right_point] = self.horizontal_line(self.cur_point)
@@ -170,7 +187,7 @@ class Route:
         # 绘制到图像上
         cv2.circle(self.img_origin, tuple(self.cur_point), 2, (0, 255, 0), -1)
         # 是否到终点
-        if abs(self.cur_point[0]-cfg.end_point[0])+abs(self.cur_point[1]-cfg.end_point[1]) <= 3:
+        if abs(self.cur_point[0]-self.end_point[0])+abs(self.cur_point[1]-self.end_point[1]) <= 3:
             self.is_finish_ = True
         
         # debug 将确定的切线画出来
