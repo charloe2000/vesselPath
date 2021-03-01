@@ -13,7 +13,7 @@ class Controller:
         self.destination_loc = self.route.next_loc()
         self.location = location.Location()
         self.current_loc = self.location.get_cur_loc()
-    
+           
     def compute_delta(self):
         """
         计算目标点和当前位置的差值
@@ -22,6 +22,12 @@ class Controller:
         delta_y = self.destination_loc[1] - self.current_loc[1]
         delta = (delta_x, delta_y)
         return delta
+    
+    def paint_delta(self):
+        img_route = self.route.get_route_img().copy()
+        cv2.line(img_route, tuple(self.current_loc), tuple(self.destination_loc), (0, 255, 255), 1)
+        cv2.circle(img_route, tuple(self.current_loc), 3, (0, 0, 255), -1)
+        cv2.imshow("img_route", img_route)
     
     def start(self):
         """
@@ -34,6 +40,7 @@ class Controller:
             count -= 1
             self.destination_loc = self.route.next_loc()
             self.current_loc = self.location.get_cur_loc()
+            self.paint_delta()
             print(self.compute_delta())
             cv2.waitKey(100)
         print('Done!')

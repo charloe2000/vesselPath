@@ -48,7 +48,10 @@ class Route:
 
     def show(self):
         cv2.imshow("route", self.img_origin)
-        cv2.waitKey()
+        # cv2.waitKey()
+    
+    def get_route_img(self):
+        return self.img_origin
 
     def vertical_line(self, point):
         """
