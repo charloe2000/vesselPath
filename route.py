@@ -32,7 +32,7 @@ class Route:
         self.last_k = -1
         self.direction = 1
         self.is_finish_ = False
-        cv2.imshow("origin", self.img_origin)
+        # cv2.imshow("origin", self.img_origin)
     
     def read_route_json(self, img_route_json):
         """
