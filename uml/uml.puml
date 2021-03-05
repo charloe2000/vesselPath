@@ -1,15 +1,27 @@
 @startuml
 
-[-> Controller: compute_route (image)
+[-> Controller: choose_route (image)
 activate Controller
 
 create Route
 Controller -> Route: create (image)
+create Location
+Controller -> Location: create ()
+
 loop is_finish==false
     Controller -> Route: next_loc ()
     activate Route
     Route --> Controller: (x, y)
+    deactivate Route
+
+    Controller -> Location: get_cur_loc ()
+    activate Location
+    Location --> Controller: (x', y')
+    deactivate Location
+
+    Controller ->[: output_delta ()
 end
+
 
 
 @enduml
