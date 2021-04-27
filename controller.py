@@ -44,7 +44,7 @@ class Controller:
             self.paint_delta()
             print(self.compute_delta())
             if cv2.waitKey(100) & 0xFF == 27:
-                print('Done!')
+                print('Interrupt!')
                 cv2.destroyWindow(self.name)
                 return
         print('Done!')
