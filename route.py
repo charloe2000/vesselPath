@@ -202,10 +202,15 @@ class Route:
         
         return self.cur_point
             
-        
-        
 
 
+# count = 300
+# route = Route('images/origin.png', 'images/path/path1-1.png', 'jsons/path1-1.json')
+# while not route.is_finish() and count > 0:
+#     count -= 1
+#     route.next_loc(debug=True)
+#     # if cv2.waitKey(100) & 0xFF == 27:
+#     #     print('Interrupt!')
 
-
+# cv2.waitKey()
 
