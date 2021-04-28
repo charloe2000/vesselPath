@@ -8,6 +8,10 @@ std_color = np.array([60, 255, 255])
 lower_color = np.array([50, 50, 50])
 upper_color = np.array([70, 255, 255])
 
+# 机器人头的颜色范围
+head_lower_color = np.array([20, 50, 50])
+head_upper_color = np.array([40, 255, 255])
+
 # 路线取样距离
 sampling_distance = 3
 

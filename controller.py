@@ -2,6 +2,7 @@ import route
 import location
 from cv2 import cv2
 import numpy as np
+import config as cfg
 
 class Controller:
 
@@ -15,7 +16,7 @@ class Controller:
         self.destination_loc = self.route.next_loc()
         self.next_destination_loc = self.route.next_loc()
         self.location = location.Location()
-        self.current_loc = self.location.get_cur_loc()
+        # self.current_loc = self.location.get_cur_loc()
     
     def get_next_destionation(self):
         cur_delta = np.square(np.abs(self.destination_loc[0] - self.current_loc[0])) + \
@@ -36,25 +37,40 @@ class Controller:
         delta = (delta_x, delta_y)
         return delta
     
-    def paint_delta(self):
-        img_route = self.route.get_route_img().copy()
-        cv2.line(img_route, tuple(self.current_loc), tuple(self.destination_loc), (0, 255, 255), 2)
-        cv2.circle(img_route, tuple(self.current_loc), 3, (0, 0, 255), -1)
-        cv2.imshow(self.name, img_route)
+    def paint_delta(self, frame):
+        # img_route = self.route.get_route_img().copy()
+        # cv2.line(img_route, tuple(self.current_loc), tuple(self.destination_loc), (0, 255, 255), 2)
+        # cv2.circle(img_route, tuple(self.current_loc), 3, (0, 0, 255), -1)
+        # cv2.imshow(self.name, img_route)
+        cv2.line(frame, tuple(self.current_loc), tuple(self.destination_loc), (0, 255, 255), 2)
+        cv2.circle(frame, tuple(self.current_loc), 3, (0, 0, 255), -1)
+        cv2.circle(frame, tuple(self.destination_loc), 3, (0, 255, 0), -1)
+        cv2.imshow(self.name, frame)
     
     def start(self):
         """
         对一个当前位置来说，这个位置应该与哪个目标点进行比较？
         """
 
-        print(self.compute_delta())
+        cap = cv2.VideoCapture(2)
+        if not cap.isOpened():
+            print("Cannot open camera")
+            exit()
+
         # count = 300
         # while not self.route.is_finish() and count > 0:
         while not self.route.is_finish():
             # count -= 1
+            ret, frame = cap.read()
+            if not ret:
+                print("Can't receive frame (stream end?). Exiting ...")
+                cap.release()
+                cv2.destroyWindow(self.name)
+                break
+            frame = cv2.resize(frame ,(cfg.image_width, cfg.image_height), interpolation = cv2.INTER_AREA)
+            self.current_loc = self.location.get_cur_loc(frame)
             self.get_next_destionation()
-            self.current_loc = self.location.get_cur_loc()
-            self.paint_delta()
+            self.paint_delta(frame)
             print(self.compute_delta())
             if cv2.waitKey(100) & 0xFF == 27:
                 print('Interrupt!')
@@ -66,5 +82,5 @@ class Controller:
         return
 
 
-controller = Controller('images/origin.png', 'images/path/path1-1.png', 'jsons/path1-1.json')
-controller.start()
+# controller = Controller('images/origin.png', 'images/path/path1-1.png', 'jsons/path1-1.json')
+# controller.start()

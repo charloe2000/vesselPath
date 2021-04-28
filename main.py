@@ -32,9 +32,9 @@ def choose_path(event, x, y, flags, param):
             Controller(origin, paths[2], jsons[2]).start()
 
 
-origin = 'images/origin.png'
-paths = ['images/path/path1-1.png', 'images/path/path1.png', 'images/path/path2.png', 'images/path/path3.png']
-jsons = ['jsons/path1-1.json', 'jsons/path1.json', 'jsons/path2.json', 'jsons/path3.json']
+origin = 'images/origin.jpg'
+paths = ['images/path/path1.png', 'images/path/path2.png', 'images/path/path3.png']
+jsons = ['jsons/path1.json', 'jsons/path2.json', 'jsons/path3.json']
 # choice = None
 # (45, 45), (225, 200)
 # (300, 45), (500, 200)

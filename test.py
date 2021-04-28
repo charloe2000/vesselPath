@@ -1,7 +1,7 @@
 from cv2 import cv2
 import config as cfg
 
-img = cv2.imread("images/path/path1-1.png")
+img = cv2.imread("images/path/path3.png")
 img = cv2.resize(img ,(cfg.image_width, cfg.image_height), interpolation = cv2.INTER_AREA)
 cv2.imshow("img", img)
 cv2.waitKey()
