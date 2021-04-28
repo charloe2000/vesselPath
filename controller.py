@@ -1,6 +1,7 @@
 import route
 import location
 from cv2 import cv2
+import numpy as np
 
 class Controller:
 
@@ -12,8 +13,19 @@ class Controller:
             json)
         self.name = path.split('/')[-1]
         self.destination_loc = self.route.next_loc()
+        self.next_destination_loc = self.route.next_loc()
         self.location = location.Location()
         self.current_loc = self.location.get_cur_loc()
+    
+    def get_next_destionation(self):
+        cur_delta = np.square(np.abs(self.destination_loc[0] - self.current_loc[0])) + \
+            np.square(np.abs(self.destination_loc[1] - self.current_loc[1]))
+        next_delta = np.square(np.abs(self.next_destination_loc[0] - self.current_loc[0])) + \
+            np.square(np.abs(self.next_destination_loc[1] - self.current_loc[1]))
+        
+        if (cur_delta >= next_delta):
+            self.destination_loc = self.next_destination_loc
+            self.next_destination_loc = self.route.next_loc()
            
     def compute_delta(self):
         """
@@ -36,10 +48,11 @@ class Controller:
         """
 
         print(self.compute_delta())
-        count = 300
-        while(not self.route.is_finish() and count > 0):
-            count -= 1
-            self.destination_loc = self.route.next_loc()
+        # count = 300
+        # while not self.route.is_finish() and count > 0:
+        while not self.route.is_finish():
+            # count -= 1
+            self.get_next_destionation()
             self.current_loc = self.location.get_cur_loc()
             self.paint_delta()
             print(self.compute_delta())
@@ -53,5 +66,5 @@ class Controller:
         return
 
 
-# controller = Controller('images/origin.png', 'images/path/path1.png', 'jsons/path1.json')
-# controller.start()
+controller = Controller('images/origin.png', 'images/path/path1-1.png', 'jsons/path1-1.json')
+controller.start()
