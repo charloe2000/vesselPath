@@ -3,6 +3,9 @@ import location
 from cv2 import cv2
 import numpy as np
 import config as cfg
+import serial
+import threading
+import time
 
 class Controller:
 
@@ -47,6 +50,20 @@ class Controller:
         cv2.circle(frame, tuple(self.destination_loc), 3, (0, 255, 0), -1)
         cv2.imshow(self.name, frame)
     
+    def output_serial(self):
+        self.myThread = threading.Thread(target=self.output_serial_run)
+        self.myThread.start()
+    
+    def output_serial_run(self):
+        while True:
+            time.sleep(2)
+            ser = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.5)
+            delta = self.compute_delta()
+            data = str(delta[0]) + ' ' + str(delta[1]) + '\n'
+            data = bytes(data, encoding='utf-8')
+            ser.write(data)
+            ser.close()          
+    
     def start(self):
         """
         对一个当前位置来说，这个位置应该与哪个目标点进行比较？
@@ -56,6 +73,8 @@ class Controller:
         if not cap.isOpened():
             print("Cannot open camera")
             exit()
+        
+        self.output_serial()
 
         # count = 300
         # while not self.route.is_finish() and count > 0:
